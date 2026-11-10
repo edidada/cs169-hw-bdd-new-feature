@@ -37,10 +37,24 @@ class MoviesController < ApplicationController
     redirect_to movies_path
   end
 
+  # Part 2: show movies by the same director as `@movie`.
+  # Sad path: no director info -> back to home page with a warning.
+  def similar
+    @movie = Movie.find params[:id]
+    if @movie.director.blank?
+      redirect_to movies_path,
+                  flash: { warning: "'#{@movie.title}' has no director info" }
+    else
+      @director = @movie.director
+      @movies = @movie.others_by_same_director
+      render 'show_by_director'
+    end
+  end
+
   private
 
   # Note - for Part 1, you may need to modify this method.
   def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date)
+    params.require(:movie).permit(:title, :rating, :description, :release_date, :director)
   end
 end

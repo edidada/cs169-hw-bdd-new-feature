@@ -3,6 +3,10 @@
 
 <%#  Part 2: Start here... %>
 
+<% if flash[:warning].present? %>
+  <div class="alert alert-warning" id="flash-warning"><%= flash[:warning] %></div>
+<% end %>
+
 <table class="table table-striped col-md-12" id="movies">
   <thead>
     <tr>

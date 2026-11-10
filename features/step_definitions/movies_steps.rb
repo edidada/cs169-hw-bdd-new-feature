@@ -22,3 +22,10 @@ Then(/I should see all the movies/) do
     step %(I should see "#{movie.title}")
   end
 end
+
+# Part 1 / 2: verify the director field survived the round trip through
+# the edit page and movie_params strong parameters.
+Then(/^the director of "(.*)" should be "(.*)"$/) do |movie_title, director|
+  movie = Movie.find_by!(title: movie_title)
+  expect(movie.director).to eq(director)
+end

@@ -1,8 +1,10 @@
 class Movie < ApplicationRecord
-  #### Part 1 ####
-  # implement this method. Remeber to exclude [self]
-  # (the current movie) from your return value
+  #### Part 2 ####
+  # movies whose director matches the director of `self`,
+  # excluding `self` itself. Returns [] for movies without a director.
   def others_by_same_director
-    # Your code here #
+    return [] if director.blank?
+    Movie.where(director: director)
+         .where.not(id: id)
   end
 end

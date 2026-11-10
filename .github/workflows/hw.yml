@@ -1,0 +1,45 @@
+name: CS169 hw-bdd-new-feature
+on:
+  push:
+    branches: [edidada/cs169-labs]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cucumber:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6.6'
+      - name: Install bundler 1.17.3 (version locked in Gemfile.lock)
+        run: gem install bundler:1.17.3
+      - name: Install system libraries for sqlite3 1.3.11 / nokogiri 1.8.4
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev libxml2-dev libxslt1-dev zlib1g-dev
+      - name: Install gems (Gemfile.lock pins the exact set)
+        env:
+          NOKOGIRI_USE_SYSTEM_LIBRARIES: '1'
+        run: bundle _1.17.3_ install
+      - name: Prepare test database
+        run: bundle _1.17.3_ exec rails db:create db:migrate RAILS_ENV=test
+      - name: Run all cucumber scenarios and assert counts
+        env:
+          TERM: dumb
+        run: |
+          set -o pipefail
+          bundle _1.17.3_ exec cucumber --backtrace | tee cucumber-run.log
+          grep -Eq '^[0-9]+ scenarios \([0-9]+ passed\)$' cucumber-run.log || { echo 'passed scenario summary line missing'; exit 1; }
+          grep -Eq '^[0-9]+ steps \([0-9]+ passed\)$' cucumber-run.log || { echo 'passed steps summary line missing'; exit 1; }
+          if grep -Eq '(failed|skipped)' cucumber-run.log; then echo 'unpassed steps present'; exit 1; fi
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bdd-results
+          path: |
+            features/**/*.feature
+            features/**/*.rb
+            cucumber-run.log
+          if-no-files-found: warn
