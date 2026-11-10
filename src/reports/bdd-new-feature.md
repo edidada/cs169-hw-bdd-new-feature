@@ -26,4 +26,26 @@
 
 `.github/workflows/hw.yml`：ruby 2.6.6 + bundler 1.17.3（与 `Gemfile.lock` 锁定一致）；sqlite3 1.3.11 / nokogiri 1.8.4 用系统库编译；`rails db:create db:migrate RAILS_ENV=test` 后执行 `cucumber --backtrace`，并对 `N scenarios (N passed)` / `N steps (N passed)` 汇总行断言，防止 0/0 通过。
 
-运行记录：见下方运行编号；验收时更新本文件与 results。
+## 已通过的公开验证（2026-11-10）
+
+验收分支 `edidada/cs169-labs`；实现最终 HEAD `1b4e8312514586e1f157bced2c62ef9bd67508c4`（run [42822152038](https://github.com/edidada/cs169-hw-bdd-new-feature/actions/runs/42822152038) `success`，docs/报告 HEAD 另见下方运行记录）。Cucumber 汇总：
+
+- `4 scenarios (4 passed)`，`22 steps (22 passed)`
+  - 官方 `features/movies_by_director.feature` 3 个场景全部通过：
+    1. add director to existing movie —— 编辑页按 Director 标签填入 "Ridley Scott" 并 Update Movie Info，DB 断言 `the director of "Alien" should be "Ridley Scott"`；
+    2. find movie with same director —— Star Wars 详情页 Follow "Find Movies With Same Director"，进入 Similar Movies 页看到 THX-1138、看不到 Blade Runner；
+    3. sad path —— 无 Director 的 Alien 触发 `flash[:warning] = "'Alien' has no director info"`
+ 回到 movies 首页。
+  - 补充场景 `features/similar_director_edge.feature`：导演无其他电影时 Similar Movies 页正常渲染（非官方场景）。
+- workflows 的汇总断言防止 0/0 或 skipped/failed 混入。
+
+## CI 修复史（保留）
+
+1. run 42821445777：Rails 4.2 的 `rails` binstub 不识别 `db:*` 命令（Rails 5+ 才内置），改用 `bundle exec rake db:create db:migrate`。
+2. run 42821773609：官方 starter 的 `app/models/movie.rb` 继承 `ApplicationRecord`，但 starter 是 Rails 4.2.10（该基类 Rails 5 才有）且仓库内无定义 —— 按官方 starter 文件不动模型类行的原则，补 `app/models/application_record.rb`（标准抽象基类 shim），随后成功。
+
+## 边界与局限
+
+- 验收仅覆盖官方 starter 场景 + 1 条补充场景；不宣称 SAAS edx 侧 autograder 或最终 deploy 的任何状态。
+- Rails 4.2.10 老 gem 栈（含 nokogiri 1.8.4 / sqlite3 1.3.11）在本 CI 用系统库编译；未改动官方 `Gemfile` / `Gemfile.lock`。
+- 本地仅静态核对，所有执行在 GitHub Actions。
