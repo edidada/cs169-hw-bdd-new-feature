@@ -22,8 +22,8 @@ jobs:
         env:
           NOKOGIRI_USE_SYSTEM_LIBRARIES: '1'
         run: bundle _1.17.3_ install
-      - name: Prepare test database
-        run: bundle _1.17.3_ exec rails db:create db:migrate RAILS_ENV=test
+      - name: Prepare test database (Rails 4.2 routes db:* through rake)
+        run: bundle _1.17.3_ exec rake db:create db:migrate RAILS_ENV=test
       - name: Run all cucumber scenarios and assert counts
         env:
           TERM: dumb
